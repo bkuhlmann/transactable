@@ -23,6 +23,12 @@ Gem::Specification.new do |spec|
   spec.cert_chain = [Gem.default_cert_path]
 
   spec.required_ruby_version = "~> 3.1"
+
+  spec.add_dependency "dry-container", "~> 0.10"
+  spec.add_dependency "dry-events", "~> 0.3"
+  spec.add_dependency "dry-monads", "~> 1.4"
+  spec.add_dependency "infusible", "~> 0.0"
+  spec.add_dependency "marameters", "~> 0.9"
   spec.add_dependency "refinements", "~> 9.6"
   spec.add_dependency "zeitwerk", "~> 2.6"
 
