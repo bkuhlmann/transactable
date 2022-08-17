@@ -1,0 +1,36 @@
+version: 2.1
+jobs:
+  build:
+    working_directory: ~/project
+    docker:
+      - image: bkuhlmann/alpine-ruby:latest
+    steps:
+      - checkout
+
+      - restore_cache:
+          name: Bundler Restore
+          keys:
+            - gem-cache-{{.Branch}}-{{checksum "Gemfile"}}-{{checksum "transactable.gemspec"}}
+            - gem-cache-
+
+      - run:
+          name: Bundler Install
+          command: |
+            gem update --system
+            bundle config set path "vendor/bundle"
+            bundle install
+
+      - save_cache:
+          name: Bundler Store
+          key: gem-cache-{{.Branch}}-{{checksum "Gemfile"}}-{{checksum "transactable.gemspec"}}
+          paths:
+            - vendor/bundle
+
+      - run:
+          name: Build
+          command: bundle exec rake
+
+      - store_artifacts:
+          name: SimpleCov Artifacts Upload
+          path: ~/project/coverage
+          destination: coverage

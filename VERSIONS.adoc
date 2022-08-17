@@ -1,0 +1,18 @@
+= Versions
+
+== 0.0.0 (2022-09-10)
+
+* Added RSpec instrumentation shared context - Brooke Kuhlmann
+* Added abstract step - Brooke Kuhlmann
+* Added application container - Brooke Kuhlmann
+* Added application import - Brooke Kuhlmann
+* Added composable module - Brooke Kuhlmann
+* Added documentation - Brooke Kuhlmann
+* Added gem dependencies - Brooke Kuhlmann
+* Added instrument - Brooke Kuhlmann
+* Added instrumentable module - Brooke Kuhlmann
+* Added pipeable - Brooke Kuhlmann
+* Added project skeleton - Brooke Kuhlmann
+* Added steps - Brooke Kuhlmann
+* Added steps container - Brooke Kuhlmann
+* Added transactable module inclusion - Brooke Kuhlmann

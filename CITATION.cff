@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: Please use the following metadata when citing this project in your work.
+title: Transactable
+abstract: A DSL for transactional workflows built atop function composition.
+version: 0.0.0
+license: Hippocratic-2.1
+date-released: 2022-09-10
+authors:
+  - family-names: Kuhlmann
+    given-names: Brooke
+    affiliation: Alchemists
+    orcid: https://orcid.org/0000-0002-5810-6268
+keywords:
+ - ruby
+ - function composition
+ - transaction
+repository-code: https://github.com/bkuhlmann/transactable
+repository-artifact: https://rubygems.org/gems/transactable
