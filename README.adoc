@@ -1,20 +1,492 @@
+:command_pattern_link: link:https://www.alchemists.io/articles/command_pattern[Command Pattern]
+:dry_container_link: link:https://dry-rb.org/gems/dry-container[Dry Container]
+:dry_events_link: link:https://dry-rb.org/gems/dry-events[Dry Events]
+:dry_monads_link: link:https://dry-rb.org/gems/dry-monads[Dry Monads]
+:dry_schema_link: link:https://dry-rb.org/gems/dry-schema[Dry Schema]
+:dry_validation_link: link:https://dry-rb.org/gems/dry-validation[Dry Validation]
+
 :toc: macro
 :toclevels: 5
 :figure-caption!:
 
 = Transactable
 
+A DSL for transactional workflows built atop function composition. This allows you to write in a syntax that builds upon -- and abstracts away -- native function composition support while allowing you to cleanly read the code from left-to-right or top-to-bottom sequentially.
+
 toc::[]
 
 == Features
 
-== Screencasts
+* Built on top of native function composition capabilities.
+* Customizable with additional or entirely different steps.
+* Chainable where you can couple together multiple transactions to build more complex architectures.
+* Instrumentable so you can track metrics, log usage, and much more.
 
 == Requirements
 
 . link:https://www.ruby-lang.org[Ruby].
 
 == Setup
+
+To install, run:
+
+[source,bash]
+----
+gem install transactable
+----
+
+Add the following to your Gemfile file:
+
+[source,ruby]
+----
+gem "transactable"
+----
+
+== Usage
+
+You can turn any object into a _transaction_ by requiring and including this gem as follows:
+
+[source,ruby]
+----
+require "csv"
+require "transactable"
+
+class Demo
+  include Transactable
+
+  def initialize client: CSV
+    @client = client
+  end
+
+  def call data
+    pipe data,
+         check(/Book.+Price/, :match?),
+         method(:parse),
+         map { |item| "#{item[:book]}: #{item[:price]}" }
+  end
+
+  private
+
+  attr_reader :client
+
+  def parse result
+    result.fmap do |data|
+      client.instance(data, headers: true, header_converters: proc { |key| key.downcase.to_sym })
+            .to_a
+            .map(&:to_h)
+    end
+  end
+end
+----
+
+The above allows the `Demo#call` method to be a _transactional_ series of composed steps which may pass or fail where each step is piped together via {dry_monads_link}. This is the essence of the _Railway Pattern_.
+
+To execute the above example, you'd only need to pass CSV content to it:
+
+[source,ruby]
+----
+csv = <<~CSV
+  Book,Author,Price,At
+  Mystics,urGoh,10.50,2022-01-01
+  Skeksis,skekSil,20.75,2022-02-13
+CSV
+
+demo = Demo.new
+
+demo.call csv
+----
+
+The computed result is a success with each book listing a price:
+
+....
+Success ["Mystics: 10.50", "Skeksis: 20.75"]
+....
+
+=== Pipe
+
+Once you've included the `Transactable` module within your class, the `#pipe` method is available to you and is how you build a series of steps for processing. The method signature is:
+
+[source,ruby]
+----
+pipe(input, *steps)
+----
+
+The first argument is your input which can be a Ruby primitive or a monad. Regardless, the input will be automatically wrapped as a `Success` -- but only if not a `Result` to begin with -- before passing to the first step. From there, all steps are _required_ to answer a monad in order to adhere to the _Railway Pattern_.
+
+Behind the scenes, the `#pipe` method is syntactic sugar on top of function composition which means if this code were to be rewritten:
+
+[source,ruby]
+----
+pipe csv,
+     check(/Book.+Price/, :match?),
+     method(:parse),
+     map { |item| "#{item[:book]}: #{item[:price]}" }
+----
+
+Then the above would look like this using native Ruby:
+
+[source,ruby]
+----
+(
+  check(/Book.+Price/, :match?) >>
+  method(:parse) >>
+  map { |item| "#{item[:book]}: #{item[:price]}" }
+).call Success(csv)
+----
+
+The only problem with native function composition is that it reads backwards by passing in your input at the end of all sequential steps. With the `#pipe` method, you have the benefit of allowing your eye to read the code from top to bottom in addition to not having to type multiple _forward composition_ operators.
+
+=== Steps
+
+There are multiple, default, steps you can use to compose your transactional pipe. As long as all steps succeed, you'll get a successful response. Otherwise, the first step to fail will pass the failure down by skipping all subsequent steps (unless you dynamically attempt to turn the failure into a success). The following describes each step in detail where you can mix and match as makes sense.
+
+==== As
+
+Allows you to message the input as different output. Example:
+
+[source,ruby]
+----
+pipe :a, as(:inspect)                  # Success ":a"
+pipe %i[a b c], as(:dig, 1)            # Success :b
+pipe Failure("Danger!"), as(:inspect)  # Failure "Danger!"
+----
+
+==== Bind
+
+Allows you to perform operations on a successful result only. You are then responsible for answering a success or failure accordingly. This is a convenience wrapper to native {dry_monads_link} `#bind` functionality. Example:
+
+[source,ruby]
+----
+pipe %i[a b c], bind { |input| Success input.join("-") }           # Success "a-b-c"
+pipe %i[a b c], bind { |input| Failure input }                     # Failure [:a, :b, :c]
+pipe Failure("Danger!"), bind { |input| Success input.join("-") }  # Failure "Danger!"
+----
+
+==== Check
+
+Allows you to check if the input and messaged object evaluate to `true` or `Success`. When successful, input is passed through as a `Success`. When false, input is passed through as a `Failure`. Example:
+
+[source,ruby]
+----
+pipe :a, check(%i[a b], :include?)                  # Success :a
+pipe :a, check(%i[b c], :include?)                  # Failure :a
+pipe Failure("Danger!"), check(%i[a b], :include?)  # Failure "Danger!"
+----
+
+==== Fmap
+
+Allows you to unwrap a successful operation, make a modification, and rewrap the modification as a new success. This is a convenience wrapper to native {dry_monads_link} `#fmap` functionality. Example:
+
+[source,ruby]
+----
+pipe %i[a b c], fmap { |input| input.join "-" }           # Success "a-b-c"
+pipe Failure("Danger!"), fmap { |input| input.join "-" }  # Failure "Danger!"
+----
+
+==== Insert
+
+Allows you to insert an element after the input (default behavior) and wraps native link:https://rubyapi.org/o/array#method-i-insert[Array#insert] functionality. If the input is not an array, it will be cast as one. You can use the `:at` key to specify where you want insertion to happen. This step is most useful when needing to assemble arguments for passing to a subsequent step. Example:
+
+[source,ruby]
+----
+pipe :a, insert(:b)                  # Success [:a, :b]
+pipe :a, insert(:b, at: 0)           # Success [:b, :a]
+pipe %i[a c], insert(:b, at: 1)      # Success [:a, :b, :c]
+pipe Failure("Danger!"), insert(:b)  # Failure "Danger!"
+----
+
+==== Map
+
+Allows you to map over an enumerable and wraps native link:https://rubyapi.org/o/enumerable#method-i-map[Enumerable#map] functionality.
+
+[source,ruby]
+----
+pipe %i[a b c], map(&:inspect)           # Success [":a", ":b", ":c"]
+pipe Failure("Danger!"), map(&:inspect)  # Failure "Danger!"
+----
+
+==== Merge
+
+Allows you to merge the input with additional attributes as a single hash. If the input is not a hash, then the input will be merged with the attributes using `step` as the key. The default `step` key can be renamed to a different key by using the `:as` key. Like the _Insert_ step, this is most useful when needing to assemble arguments and/or data for consumption by subsequent steps. Example:
+
+[source,ruby]
+----
+pipe({a: 1}, merge(b: 2))             # Success {a: 1, b: 2}
+pipe "test", merge(b: 2)              # Success {step: "test", b: 2}
+pipe "test", merge(as: :a, b: 2)      # Success {a: "test", b: 2}
+pipe Failure("Danger!"), merge(b: 2)  # Failure "Danger!"
+----
+
+==== Orr
+
+Allows you to operate on a failure and produce either a success or another failure. This is a convenience wrapper to native {dry_monads_link} `#or` functionality.
+
+ℹ️ Syntactically, `or` can't be used for this step since `or` is a native Ruby keyword so `orr` is used instead.
+
+Example:
+
+[source,ruby]
+----
+pipe %i[a b c], orr { |input| Success input.join("-") }          # Success [:a, :b, :c]
+pipe Failure("Danger!"), orr { Success "Resolved" }              # Success "Resolved"
+pipe Failure("Danger!"), orr { |input| Failure "Big #{input}" }  # Failure "Big Danger!"
+----
+
+==== Tee
+
+Allows you to run an operation and ignore the response while input is passed through as output. This behavior is similar in nature to the link:https://www.gnu.org/savannah-checkouts/gnu/gawk/manual/html_node/Tee-Program.html[tee] program in Bash. Example:
+
+[source,ruby]
+----
+pipe "test", tee(Kernel, :puts, "Example.")
+
+# Example.
+# Success "test"
+
+pipe Failure("Danger!"), tee(Kernel, :puts, "Example.")
+
+# Example.
+# Failure "Danger!"
+----
+
+==== To
+
+Allows you to delegate to an object -- which doesn't have a callable interface and may or may not answer a result -- for processing of input. If the response is not a monad, it'll be automatically wrapped as a `Success`. Example:
+
+[source,ruby]
+----
+Model = Struct.new :label, keyword_init: true do
+  include Dry::Monads[:result]
+
+  def self.for(...) = Success new(...)
+end
+
+pipe({label: "Test"}, to(Model, :for))    # Success #<struct Model label="Test">
+pipe Failure("Danger!"), to(Model, :for)  # Failure "Danger!"
+----
+
+==== Try
+
+Allows you to try an operation which may fail while catching the exception as a failure for further processing. Example:
+
+[source,ruby]
+----
+pipe "test", try(:to_json, catch: JSON::ParserError)     # Success "\"test\""
+pipe "test", try(:invalid, catch: NoMethodError)         # Failure "undefined method..."
+pipe Failure("Danger!"), try(:to_json, catch: JSON::ParserError)  # Failure "Danger!"
+----
+
+==== Use
+
+Allows you to use another transaction which might have multiple steps of it's own, use an object that adheres to the {command_pattern_link}, or any function which answers a {dry_monads_link} `Result` object. In other words, you can use _use_ any object which responds to `#call` and answers a {dry_monads_link} `Result` object. This is great for chaining multiple transactions together.
+
+[source,ruby]
+----
+function = -> input { Success input * 3 }
+
+pipe 3, use(function)                   # Success 9
+pipe Failure("Danger!"), use(function)  # Failure "Danger!"
+----
+
+==== Validate
+
+Allows you to use an operation that will validate the input. This is especially useful when using {dry_schema_link}, {dry_validation_link}, or any operation that can respond to `#call` while answering a result that can be converted into a hash.
+
+By default, the `:as` key uses `:to_h` as it's value so you get automatic casting to a `Hash`. Use `nil`, as the value, to disable this behavior. You can also pass in any value to the `:as` key which is a valid method that the result will respond to.
+
+[source,ruby]
+----
+schema = Dry::Schema.Params { required(:label).filled :string }
+
+pipe({label: "Test"}, validate(schema))           # Success label: "Test"
+pipe({label: "Test"}, validate(schema, as: nil))  # Success #<Dry::Schema::Result{:label=>"Test"} errors={} path=[]>
+pipe Failure("Danger!"), validate(schema)         # Failure "Danger!"
+----
+
+=== Customization
+
+Should none of the above default steps be to your liking, you have several alternatives available for further customization. Each is described in detail below.
+
+==== Procs
+
+You can always use a `Proc` as a custom step. Example:
+
+[source,ruby]
+----
+include Transactable
+include Dry::Monads[:result]
+
+pipe :a,
+     insert(:b),
+     proc { Success "input_ignored" },
+     as(:to_sym)
+
+# Yields: Success :input_ignored
+----
+
+ℹ️ While procs are effective, you are limited in what you can do with them in terms of additional behavior and instrumentation support.
+
+==== Lambdas
+
+In addition to procs, lambdas can be used too. Example:
+
+[source,ruby]
+----
+include Transactable
+
+pipe :a,
+     insert(:b),
+     -> result { result.fmap { |input| input.join "_" } },
+     as(:to_sym)
+
+# Yields: Success :a_b
+----
+
+ℹ️ Lambdas are a step up from procs but, like procs, you are limited in what you can do with them in terms of additional behavior and instrumentation support.
+
+==== Methods
+
+Methods -- in addition to procs and lambdas -- are the _preferred_ way to add custom steps due to the concise syntax. Example:
+
+[source,ruby]
+----
+class Demo
+  include Transactable
+
+  def call input
+    pipe :a,
+         insert(:b),
+         method(:join),
+         as(:to_sym)
+  end
+
+  private
+
+  def join(result) = result.fmap { |input| input.join "_" }
+end
+
+Demo.new.call :a  # Yields: Success :a_b
+----
+
+ℹ️ You won't be able to instrument these method calls (unless you inject instrumentation) but are great when needing additional behavior between the default steps.
+
+==== Steps
+
+If you'd like to define a more permanent and reusable step, you can register a custom step which requires you to:
+
+. Define a custom step as a new class.
+. Register your custom step along side the existing default steps.
+
+Here's what this would look like:
+
+[source,ruby]
+----
+module MySteps
+  class Join < Transactable::Steps::Abstract
+    prepend Transactable::Instrumentable
+
+    def initialize delimiter = "_", **dependencies
+      super
+      @delimiter = delimiter
+    end
+
+    def call(result) = result.fmap { |input| input.join delimiter }
+
+    private
+
+    attr_reader :delimiter
+  end
+end
+
+Transactable::Steps::Container.register(:join) { MySteps::Join }
+
+include Transactable
+
+pipe :a,
+     insert(:b),
+     join,
+     as(:to_sym)
+
+# Yields: Success :a_b
+
+pipe :a,
+     insert(:b),
+     join(""),
+     as(:to_sym)
+
+# Yields: Success :ab
+----
+
+==== Containers
+
+Should you not want the default steps, need custom steps, or a hybrid of default and custom steps, you can define your own container and provide it as an argument to `.with` when including transactable behavior. Example:
+
+[source,ruby]
+----
+require "dry/container"
+
+module MyContainer
+  extend Dry::Container::Mixin
+
+  register :echo, -> result { result }
+  register(:insert) { Transactable::Steps::Insert }
+end
+
+include Transactable.with(MyContainer)
+
+pipe :a, echo, insert(:b)
+
+# Yields: Success [:a, :b]
+----
+
+The above is a hybrid example where the `MyContainer` registers a custom `echo` step along with the default `insert` step to make a new container. This is included when passed in as an argument via `.with` (i.e. `include Transactable.with(MyContainer)`).
+
+Whether you use default, custom, or hybrid steps, you have maximum flexibility using this approach.
+
+=== Composition
+
+Should you ever need to make a plain old Ruby object functionally composable, then you can _include_ the `Transactable::Composable` module which will give you the necessary `\#>>`, `#<<`, and `#call` methods where you only need to implement the `#call` method.
+
+=== Instrumentation
+
+Each transaction includes instrumentation using {dry_events_link} which you can subscribe to or ignore entirely. The following events are supported:
+
+* `step`: Published for each step regardless of success or failure.
+* `step.success`: Published for success steps only.
+* `step.failure`: Published for failure steps only.
+
+Using the example code at the start of this _Usage_ section, here's how you can subscribe to events emitted by the transaction:
+
+[source,ruby]
+----
+Transactable::Instrument::EVENTS.each do |name|
+  Transactable::Container[:instrument].subscribe name do |event|
+    puts "#{event.id}: #{event.payload}"
+  end
+end
+----
+
+Now, as before, you can call the transaction with subscribers enabled:
+
+[source,ruby]
+----
+demo.call csv
+----
+
+The above will then yield the following results in your console:
+
+....
+step: {:name=>"Transactable::Steps::Check", :arguments=>[[], {}, nil]}
+step.success: {:name=>"Transactable::Steps::Check", :value=>"Book,Author,Price,At\nMystics,urGoh,10.50,2022-01-01\nSkeksis,skekSil,20.75,2022-02-13\n", :arguments=>[[], {}, nil]}
+step: {:name=>"Transactable::Steps::Map", :arguments=>[[], {}, #<Proc:0x0000000106405900 (irb):15>]}
+step.success: {:name=>"Transactable::Steps::Map", :value=>["Mystics: 10.50", "Skeksis: 20.75"], :arguments=>[[], {}, #<Proc:0x0000000106405900 (irb):15>]}
+....
+
+Finally, the `Transactable::Instrumentable` module is available should you need to _prepend_ instrumentation to any of your classes.
+
+There is a lot you can do with instrumentation so check out the {dry_events_link} documentation for further details.
+
+== Development
 
 To set up the project, run:
 
@@ -23,16 +495,36 @@ To set up the project, run:
 bin/setup
 ----
 
-== Usage
-
-== Development
-
 You can also use the IRB console for direct access to all objects:
 
 [source,bash]
 ----
 bin/console
 ----
+
+=== Architecture
+
+The architecture of this gem is built on top of the following concepts and gems:
+
+* *Function Composition*: Made possible through the use of the `\#>>` and `#<<` methods on the link:https://rubyapi.org/3.1/o/method[Method] and link:https://rubyapi.org/3.1/o/proc[Proc] objects.
+* {dry_container_link} - Allows related dependencies to be grouped together for injection.
+* {dry_events_link} - Allows all steps to be observable so you can subscribe to any/all events for metric, logging, and other capabilities.
+* {dry_monads_link} - Critical to ensuring the entire pipeline of steps adhere to the _Railway Pattern_ and leans heavily on the `Result` object.
+* link:https://dry-rb.org/gems/dry-transaction[Dry Transaction] - Specifically the concept of a _step_ where each step can have an _operation_ and/or _input_ to be processed. Instrumentation is used as well so you can have rich metrics, logging, or any other kind of observer wired up as desired.
+* link:https://www.alchemists.io/projects/infusible[Infusible] - Coupled with {dry_container_link}, allows dependencies to be automatically injected.
+* link:https://www.alchemists.io/projects/marameters[Marameters] - Through the use of the `.categorize` method, dynamic message passing is possible by inspecting the operation method's parameters.
+
+=== Style Guide
+
+* *Transactions*
+** Use a single method (i.e. `#call`) which is public and adheres to the {command_pattern_link} so transactions can be piped together if desired.
+* *Steps*
+** Inherit from the `Abstract` class in order to gain monad, composition, and dependency behavior. Any dependencies injected are automatically filtered out so all subclasses have direct and clean access to the initial positional, keyword, and block arguments. These variables are prefixed with `initial_*` in order to not conflict with subclasses which might only want to use non-prefixed variables for convenience.
+** All filtered arguments -- in other words, the unused arguments -- need to be passed up to the superclass from the subclass (i.e. `super(*positionals, **keywords, &block)`). Doing so allows the superclass (i.e. `Abstract`) to provide access to `base_positionals`, `base_keywords`, and `base_block` for use if desired by the subclass.
+** Prepend `Instrumentable` to gain instrumentation behavior and remain consistent with existing steps. This includes adding the `with instrumentation` RSpec shared context when testing too.
+** The `#call` method must define a single positional `result` parameter since a monad will be passed as an argument. Example: `def call(result) = # Implementation`.
+** Each block within the `#call` method should use the `input` parameter to be consistent. More specific parameters like `argument` or `operation` should be used to improve readability when possible. Example: `def call(result) = result.bind { |input| # Implementation }`.
+** Use implicit blocks sparingly. Most of the default steps shy away from using blocks because it can make the code more complex. Use private methods, custom steps, and/or separate transactions if the code becomes too complex because you might have a smaller object which needs extraction.
 
 == Tests
 
@@ -41,6 +533,34 @@ To test, run:
 [source,bash]
 ----
 bundle exec rake
+----
+
+== Troubleshooting
+
+The following might be of aid to as you implement your own transactions.
+
+=== Type Errors
+
+If you get a `TypeError: Step must be functionally composable and answer a monad`, it means:
+
+. The step must be a `Proc` or some object which responds to `\#>>`, `#<<`, and `#call`.
+. The step doesn't answer a result monad (i.e. `Success some_value` or `Failure some_value`).
+
+=== No Method Errors
+
+If you get a `NoMethodError: undefined method `success?` exception, it might mean that you forgot to add a comma after one of your steps. Example:
+
+[source,ruby]
+----
+# Valid
+pipe "https://www.wikipedia.org",
+     to(client, :get),
+     try(:parse, catch: HTTP::Error)
+
+# Invalid
+pipe "https://www.wikipedia.org",
+     to(client, :get)  # <= Comma is missing on this line.
+     try(:parse, catch: HTTP::Error)
 ----
 
 == link:https://www.alchemists.io/policies/license[License]
