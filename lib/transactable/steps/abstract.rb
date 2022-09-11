@@ -8,9 +8,7 @@ module Transactable
     class Abstract
       DEPENDENCIES = %i[instrument marameters].freeze
 
-      # rubocop:todo Layout/ClassStructure
       include Import[*DEPENDENCIES]
-      # rubocop:enable Layout/ClassStructure
       include Dry::Monads[:result]
       include Composable
 
