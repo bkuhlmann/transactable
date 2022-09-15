@@ -26,6 +26,7 @@ toc::[]
 == Requirements
 
 . link:https://www.ruby-lang.org[Ruby].
+. A strong understanding of link:https://www.alchemists.io/articles/ruby_function_composition[function composition].
 
 == Setup
 
