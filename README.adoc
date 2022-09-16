@@ -494,10 +494,12 @@ There is a lot you can do with instrumentation so check out the {dry_events_link
 
 == Development
 
-To set up the project, run:
+To contribute, run:
 
 [source,bash]
 ----
+git clone https://github.com/bkuhlmann/transactable
+cd transactable
 bin/setup
 ----
 
