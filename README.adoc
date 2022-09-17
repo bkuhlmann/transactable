@@ -1,14 +1,15 @@
+:toc: macro
+:toclevels: 5
+:figure-caption!:
+
 :command_pattern_link: link:https://www.alchemists.io/articles/command_pattern[Command Pattern]
+:function_composition_link: link:https://www.alchemists.io/articles/ruby_function_composition[Function Composition]
 :debug_link: link:https://github.com/ruby/debug[Debug]
 :dry_container_link: link:https://dry-rb.org/gems/dry-container[Dry Container]
 :dry_events_link: link:https://dry-rb.org/gems/dry-events[Dry Events]
 :dry_monads_link: link:https://dry-rb.org/gems/dry-monads[Dry Monads]
 :dry_schema_link: link:https://dry-rb.org/gems/dry-schema[Dry Schema]
 :dry_validation_link: link:https://dry-rb.org/gems/dry-validation[Dry Validation]
-
-:toc: macro
-:toclevels: 5
-:figure-caption!:
 
 = Transactable
 
@@ -26,7 +27,7 @@ toc::[]
 == Requirements
 
 . link:https://www.ruby-lang.org[Ruby].
-. A strong understanding of link:https://www.alchemists.io/articles/ruby_function_composition[function composition].
+. A strong understanding of {function_composition_link}.
 
 == Setup
 
@@ -514,7 +515,7 @@ bin/console
 
 The architecture of this gem is built on top of the following concepts and gems:
 
-* *Function Composition*: Made possible through the use of the `\#>>` and `#<<` methods on the link:https://rubyapi.org/3.1/o/method[Method] and link:https://rubyapi.org/3.1/o/proc[Proc] objects.
+* {function_composition_link}: Made possible through the use of the `\#>>` and `#<<` methods on the link:https://rubyapi.org/3.1/o/method[Method] and link:https://rubyapi.org/3.1/o/proc[Proc] objects.
 * {dry_container_link} - Allows related dependencies to be grouped together for injection.
 * {dry_events_link} - Allows all steps to be observable so you can subscribe to any/all events for metric, logging, and other capabilities.
 * {dry_monads_link} - Critical to ensuring the entire pipeline of steps adhere to the _Railway Pattern_ and leans heavily on the `Result` object.

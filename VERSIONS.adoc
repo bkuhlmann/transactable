@@ -1,5 +1,13 @@
 = Versions
 
+== 0.1.0 (2022-09-17)
+
+* Fixed README structure - Brooke Kuhlmann
+* Fixed RuboCop Layout/ClassStructure issue - Brooke Kuhlmann
+* Added README function composition requirement - Brooke Kuhlmann
+* Updated README sections - Brooke Kuhlmann
+* Updated to Dry Container 0.11.0 - Brooke Kuhlmann
+
 == 0.0.0 (2022-09-10)
 
 * Added RSpec instrumentation shared context - Brooke Kuhlmann
