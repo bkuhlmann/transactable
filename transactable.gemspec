@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "dry-container", "~> 0.11"
   spec.add_dependency "dry-events", "~> 0.3"
-  spec.add_dependency "dry-monads", "~> 1.4"
+  spec.add_dependency "dry-monads", "~> 1.5"
   spec.add_dependency "infusible", "~> 0.0"
   spec.add_dependency "marameters", "~> 0.9"
   spec.add_dependency "refinements", "~> 9.6"
