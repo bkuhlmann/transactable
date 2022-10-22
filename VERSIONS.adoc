@@ -1,5 +1,18 @@
 = Versions
 
+== 0.2.0 (2022-10-22)
+
+* Fixed Rakefile RSpec initialization - Brooke Kuhlmann
+* Fixed SimpleCov Guard interaction - Brooke Kuhlmann
+* Fixed SimpleCov gem requirement to not be required by default - Brooke Kuhlmann
+* Updated to Caliber 0.16.0 - Brooke Kuhlmann
+* Updated to Dry Events 0.4.0 - Brooke Kuhlmann
+* Updated to Dry Monads 1.5.0 - Brooke Kuhlmann
+* Updated to Dry Schema 1.11.2 - Brooke Kuhlmann
+* Updated to Infusible 0.2.0 - Brooke Kuhlmann
+* Updated to Marameters 0.10.0 - Brooke Kuhlmann
+* Updated to Refinements 9.7.0 - Brooke Kuhlmann
+
 == 0.1.0 (2022-09-17)
 
 * Fixed README structure - Brooke Kuhlmann
