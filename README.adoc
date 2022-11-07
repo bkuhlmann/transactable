@@ -586,6 +586,17 @@ To test, run:
 bundle exec rake
 ----
 
+== Benchmarks
+
+To view/compare performance, run:
+
+[source,bash]
+----
+bin/benchmark
+----
+
+💡 You can view current benchmarks at the end of the above file if you don't want to manually run them.
+
 == link:https://www.alchemists.io/policies/license[License]
 
 == link:https://www.alchemists.io/policies/security[Security]

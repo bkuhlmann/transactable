@@ -1,0 +1,116 @@
+#! /usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/inline"
+
+gemfile true do
+  source "https://rubygems.org"
+
+  gem "benchmark-ips"
+  gem "dry-transaction"
+  gem "transactable", path: ".."
+end
+
+require "json"
+
+BODY = %({"value": 1.2345})
+
+# For monad comparison.
+Monader = Class.new do
+  include Dry::Monads[:result]
+
+  def call body
+    Success(body).fmap { |content| JSON content, symbolize_names: true }
+                 .fmap { |attributes| attributes.fetch :value }
+                 .fmap { |value| value.round 2 }
+                 .fmap { |value| value * 10 }
+  end
+end
+
+# For Dry Transaction comparison.
+Transactor = Class.new do
+  include Dry::Monads[:result]
+  include Dry::Transaction
+
+  step :parse
+  step :fetch
+  step :round
+  step :multiply
+
+  private
+
+  def parse(body) = Success JSON(body, symbolize_names: true)
+
+  def fetch(attributes) = Success attributes.fetch(:value)
+
+  def round(value) = Success value.round(2)
+
+  def multiply(value) = Success value * 10
+end
+
+# For Transactable comparison (fast).
+FastComposer = Class.new do
+  include Transactable
+
+  def call body
+    pipe body, method(:parse), method(:fetch), method(:round), method(:multiply)
+  end
+
+  private
+
+  def parse(body) = body.fmap { |content| JSON content, symbolize_names: true }
+
+  def fetch(body) = body.fmap { |attributes| attributes.fetch :value }
+
+  def round(value) = value.fmap { |number| number.round 2 }
+
+  def multiply(value) = value.fmap { |number| number * 10 }
+end
+
+# For Transactable comparison (slow).
+SlowComposer = Class.new do
+  include Transactable
+
+  def call body
+    pipe body,
+         fmap { |content| JSON content, symbolize_names: true },
+         as(:fetch, :value),
+         as(:round, 2),
+         as(:*, 10)
+  end
+end
+
+monader = Monader.new
+transactor = Transactor.new
+fast_composer = FastComposer.new
+slow_composer = SlowComposer.new
+
+Benchmark.ips do |benchmark|
+  benchmark.config time: 5, warmup: 2
+
+  benchmark.report("Monad") { monader.call BODY }
+  benchmark.report("Dry::Transction") { transactor.call BODY }
+  benchmark.report("Transactable (fast)") { fast_composer.call BODY }
+  benchmark.report("Transactable (slow)") { slow_composer.call BODY }
+
+  benchmark.compare!
+end
+
+__END__
+
+Warming up --------------------------------------
+               Monad    30.175k i/100ms
+     Dry::Transction     7.332k i/100ms
+ Transactable (fast)    19.280k i/100ms
+ Transactable (slow)     3.671k i/100ms
+Calculating -------------------------------------
+               Monad    301.501k (± 1.9%) i/s -      1.509M in   5.005910s
+     Dry::Transction     71.808k (± 2.9%) i/s -    359.268k in   5.007392s
+ Transactable (fast)    188.988k (± 2.9%) i/s -    944.720k in   5.002709s
+ Transactable (slow)     36.401k (± 2.0%) i/s -    183.550k in   5.044206s
+
+Comparison:
+               Monad:   301500.6 i/s
+ Transactable (fast):   188988.1 i/s - 1.60x  (± 0.00) slower
+     Dry::Transction:    71808.4 i/s - 4.20x  (± 0.00) slower
+ Transactable (slow):    36401.1 i/s - 8.28x  (± 0.00) slower
