@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "dry/events"
 require "dry/container/stub"
+require "dry/events"
 require "infusible/stub"
 
 RSpec.shared_context "with instrumentation" do

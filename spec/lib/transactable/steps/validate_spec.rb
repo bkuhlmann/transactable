@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "spec_helper"
 require "dry/schema"
+require "spec_helper"
 
 RSpec.describe Transactable::Steps::Validate do
   include Dry::Monads[:result]

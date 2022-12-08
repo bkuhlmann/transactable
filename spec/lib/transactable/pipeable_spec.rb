@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "spec_helper"
 require "dry/monads/result"
+require "spec_helper"
 
 RSpec.describe Transactable::Pipeable do
   subject(:pipeable) { implementation.new }

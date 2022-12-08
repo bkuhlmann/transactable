@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "spec_helper"
 require "dry/monads"
+require "spec_helper"
 
 RSpec.describe Transactable::Instrumentable do
   include Dry::Monads[:result]

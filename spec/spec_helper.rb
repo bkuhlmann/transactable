@@ -13,8 +13,8 @@ unless ENV["NO_COVERAGE"]
   end
 end
 
-require "transactable"
 require "refinements"
+require "transactable"
 
 using Refinements::Pathnames
 
