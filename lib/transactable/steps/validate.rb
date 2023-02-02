@@ -6,8 +6,8 @@ module Transactable
     class Validate < Abstract
       prepend Instrumentable
 
-      def initialize operation, as: :to_h, **dependencies
-        super(**dependencies)
+      def initialize(operation, as: :to_h, **)
+        super(**)
         @operation = operation
         @as = as
       end

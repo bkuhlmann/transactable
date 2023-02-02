@@ -392,8 +392,8 @@ module MySteps
   class Join < Transactable::Steps::Abstract
     prepend Transactable::Instrumentable
 
-    def initialize delimiter = "_", **dependencies
-      super(**dependencies)
+    def initialize(delimiter = "_", **)
+      super(**)
       @delimiter = delimiter
     end
 

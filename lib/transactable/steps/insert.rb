@@ -8,8 +8,8 @@ module Transactable
 
       LAST = -1
 
-      def initialize *positionals, at: LAST, **dependencies
-        super(*positionals, **dependencies)
+      def initialize(*positionals, at: LAST, **)
+        super(*positionals, **)
         @value = positionals.empty? ? base_keywords : positionals.flatten
         @at = at
       end

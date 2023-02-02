@@ -6,8 +6,8 @@ module Transactable
     class Check < Abstract
       prepend Instrumentable
 
-      def initialize operation, message, **dependencies
-        super(**dependencies)
+      def initialize(operation, message, **)
+        super(**)
         @operation = operation
         @message = message
       end

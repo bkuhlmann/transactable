@@ -6,8 +6,8 @@ module Transactable
     class Tee < Abstract
       prepend Instrumentable
 
-      def initialize operation, *positionals, **dependencies
-        super(*positionals, **dependencies)
+      def initialize(operation, *, **)
+        super(*, **)
         @operation = operation
       end
 
