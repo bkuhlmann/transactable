@@ -2,8 +2,8 @@
 :toclevels: 5
 :figure-caption!:
 
-:command_pattern_link: link:https://www.alchemists.io/articles/command_pattern[Command Pattern]
-:function_composition_link: link:https://www.alchemists.io/articles/ruby_function_composition[Function Composition]
+:command_pattern_link: link:https://alchemists.io/articles/command_pattern[Command Pattern]
+:function_composition_link: link:https://alchemists.io/articles/ruby_function_composition[Function Composition]
 :debug_link: link:https://github.com/ruby/debug[Debug]
 :dry_container_link: link:https://dry-rb.org/gems/dry-container[Dry Container]
 :dry_events_link: link:https://dry-rb.org/gems/dry-events[Dry Events]
@@ -520,8 +520,8 @@ The architecture of this gem is built on top of the following concepts and gems:
 * {dry_events_link} - Allows all steps to be observable so you can subscribe to any/all events for metric, logging, and other capabilities.
 * {dry_monads_link} - Critical to ensuring the entire pipeline of steps adhere to the _Railway Pattern_ and leans heavily on the `Result` object.
 * link:https://dry-rb.org/gems/dry-transaction[Dry Transaction] - Specifically the concept of a _step_ where each step can have an _operation_ and/or _input_ to be processed. Instrumentation is used as well so you can have rich metrics, logging, or any other kind of observer wired up as desired.
-* link:https://www.alchemists.io/projects/infusible[Infusible] - Coupled with {dry_container_link}, allows dependencies to be automatically injected.
-* link:https://www.alchemists.io/projects/marameters[Marameters] - Through the use of the `.categorize` method, dynamic message passing is possible by inspecting the operation method's parameters.
+* link:https://alchemists.io/projects/infusible[Infusible] - Coupled with {dry_container_link}, allows dependencies to be automatically injected.
+* link:https://alchemists.io/projects/marameters[Marameters] - Through the use of the `.categorize` method, dynamic message passing is possible by inspecting the operation method's parameters.
 
 === Style Guide
 
@@ -597,19 +597,19 @@ bin/benchmark
 
 💡 You can view current benchmarks at the end of the above file if you don't want to manually run them.
 
-== link:https://www.alchemists.io/policies/license[License]
+== link:https://alchemists.io/policies/license[License]
 
-== link:https://www.alchemists.io/policies/security[Security]
+== link:https://alchemists.io/policies/security[Security]
 
-== link:https://www.alchemists.io/policies/code_of_conduct[Code of Conduct]
+== link:https://alchemists.io/policies/code_of_conduct[Code of Conduct]
 
-== link:https://www.alchemists.io/policies/contributions[Contributions]
+== link:https://alchemists.io/policies/contributions[Contributions]
 
-== link:https://www.alchemists.io/projects/transactable/versions[Versions]
+== link:https://alchemists.io/projects/transactable/versions[Versions]
 
-== link:https://www.alchemists.io/community[Community]
+== link:https://alchemists.io/community[Community]
 
 == Credits
 
-* Built with link:https://www.alchemists.io/projects/gemsmith[Gemsmith].
-* Engineered by link:https://www.alchemists.io/team/brooke_kuhlmann[Brooke Kuhlmann].
+* Built with link:https://alchemists.io/projects/gemsmith[Gemsmith].
+* Engineered by link:https://alchemists.io/team/brooke_kuhlmann[Brooke Kuhlmann].

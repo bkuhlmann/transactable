@@ -5,14 +5,14 @@ Gem::Specification.new do |spec|
   spec.version = "0.4.1"
   spec.authors = ["Brooke Kuhlmann"]
   spec.email = ["brooke@alchemists.io"]
-  spec.homepage = "https://www.alchemists.io/projects/transactable"
+  spec.homepage = "https://alchemists.io/projects/transactable"
   spec.summary = "A DSL for transactional workflows built atop function composition."
   spec.license = "Hippocratic-2.1"
 
   spec.metadata = {
     "bug_tracker_uri" => "https://github.com/bkuhlmann/transactable/issues",
-    "changelog_uri" => "https://www.alchemists.io/projects/transactable/versions",
-    "documentation_uri" => "https://www.alchemists.io/projects/transactable",
+    "changelog_uri" => "https://alchemists.io/projects/transactable/versions",
+    "documentation_uri" => "https://alchemists.io/projects/transactable",
     "funding_uri" => "https://github.com/sponsors/bkuhlmann",
     "label" => "Transactable",
     "rubygems_mfa_required" => "true",
