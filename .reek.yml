@@ -3,6 +3,8 @@ exclude_paths:
   - vendor
 
 detectors:
+  LongParameterList:
+    enabled: false
   NestedIterators:
     exclude:
       - "Transactable::Pipeable#define_steps"
