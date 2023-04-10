@@ -31,18 +31,34 @@ toc::[]
 
 == Setup
 
-To install, run:
+To install _with_ security, run:
+
+[source,bash]
+----
+# 💡 Skip this line if you already have the public certificate installed.
+gem cert --add <(curl --compressed --location https://alchemists.io/gems.pem)
+gem install transactable --trust-policy HighSecurity
+----
+
+To install _without_ security, run:
 
 [source,bash]
 ----
 gem install transactable
 ----
 
-Add the following to your Gemfile file:
+You can also add the gem directly to your project:
+
+[source,bash]
+----
+bundle add transactable
+----
+
+Once the gem is installed, you only need to require it:
 
 [source,ruby]
 ----
-gem "transactable"
+require "transactable"
 ----
 
 == Usage
