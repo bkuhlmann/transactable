@@ -1,5 +1,13 @@
 = Versions
 
+== 0.5.0 (2023-06-13)
+
+* Fixed RuboCop Style/MethodCallWithArgsParentheses issue - Brooke Kuhlmann
+* Updated to Debug 1.8.0 - Brooke Kuhlmann
+* Updated to Infusible 2.0.0 - Brooke Kuhlmann
+* Updated to Marameters 2.0.0 - Brooke Kuhlmann
+* Updated to Refinements 11.0.0 - Brooke Kuhlmann
+
 == 0.4.3 (2023-04-30)
 
 * Updated Reek configuration to disable long parameter lists - Brooke Kuhlmann

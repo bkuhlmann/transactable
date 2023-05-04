@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |spec|
   spec.name = "transactable"
-  spec.version = "0.4.3"
+  spec.version = "0.5.0"
   spec.authors = ["Brooke Kuhlmann"]
   spec.email = ["brooke@alchemists.io"]
   spec.homepage = "https://alchemists.io/projects/transactable"
-  spec.summary = "A DSL for transactional workflows built atop function composition."
+  spec.summary = "A domain specific language for functionally composable transactional workflows."
   spec.license = "Hippocratic-2.1"
 
   spec.metadata = {
