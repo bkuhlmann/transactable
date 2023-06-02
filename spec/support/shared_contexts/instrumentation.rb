@@ -18,7 +18,7 @@ RSpec.shared_context "with instrumentation" do
     instrument.subscribe("step.failure") { |event| event_inspector.failure = event }
   end
 
-  after { Transactable::Import.unstub(instrument:) }
+  after { Transactable::Import.unstub instrument: }
 
   shared_examples "an instrument" do
     it "publishes step" do
