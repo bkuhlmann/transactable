@@ -28,7 +28,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "dry-events", "~> 1.0"
   spec.add_dependency "dry-monads", "~> 1.6"
   spec.add_dependency "infusible", "~> 1.0"
-  spec.add_dependency "marameters", "~> 1.0"
+  spec.add_dependency "marameters", "~> 2.0"
   spec.add_dependency "refinements", "~> 11.0"
   spec.add_dependency "zeitwerk", "~> 2.6"
 
