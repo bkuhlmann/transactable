@@ -4,7 +4,7 @@
 require "bundler/setup"
 Bundler.require :tools
 
-require_relative "../lib/transactable"
 require "irb"
+require "transactable"
 
 IRB.start __FILE__
