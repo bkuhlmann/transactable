@@ -12,8 +12,3 @@ detectors:
     exclude:
       - "Transactable::Pipeable#define_pipe"
       - "Transactable::Pipeable#define_steps"
-  UtilityFunction:
-    exclude:
-      - "FastComposer#fetch"
-      - "FastComposer#multiply"
-      - "FastComposer#round"
