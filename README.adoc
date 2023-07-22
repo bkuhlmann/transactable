@@ -395,7 +395,7 @@ Demo.new.call :a  # Yields: Success :a_b
 
 ===== Custom
 
-If you'd like to define permanent and reusable step, you can register a custom step which requires you to:
+If you'd like to define permanent and reusable steps, you can register a custom step which requires you to:
 
 . Define a custom step as a new class.
 . Register your custom step along side the existing default steps.

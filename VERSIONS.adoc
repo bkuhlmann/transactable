@@ -1,5 +1,14 @@
 = Versions
 
+== 0.5.2 (2023-07-23)
+
+* Fixed RuboCop Packaging/BundlerSetupInTests issues - Brooke Kuhlmann
+* Fixed documentation - Brooke Kuhlmann
+* Fixed pipeable Dry Monads requirement - Brooke Kuhlmann
+* Added Kwork benchmark - Brooke Kuhlmann
+* Updated Rake RSpec task configuration to not be verbose - Brooke Kuhlmann
+* Removed Reek utility function excludes - Brooke Kuhlmann
+
 == 0.5.1 (2023-06-19)
 
 * Updated to Caliber 0.35.0 - Brooke Kuhlmann

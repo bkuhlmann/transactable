@@ -2,9 +2,9 @@ cff-version: 1.2.0
 message: Please use the following metadata when citing this project in your work.
 title: Transactable
 abstract: A domain specific language for functionally composable transactional workflows.
-version: 0.5.1
+version: 0.5.2
 license: Hippocratic-2.1
-date-released: 2023-06-19
+date-released: 2023-07-23
 authors:
   - family-names: Kuhlmann
     given-names: Brooke
