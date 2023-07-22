@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "dry/monads/result"
+require "dry/monads"
 
 module Transactable
   # Allows any object to pipe sequential steps together which can be composed into a single result.

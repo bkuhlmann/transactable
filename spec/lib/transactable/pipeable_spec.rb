@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "dry/monads/result"
 require "spec_helper"
 
 RSpec.describe Transactable::Pipeable do
