@@ -92,9 +92,7 @@ end
 FastComposer = Class.new do
   include Transactable
 
-  def call body
-    pipe body, method(:parse), method(:fetch), method(:round), method(:multiply)
-  end
+  def call(body) = pipe body, :parse, :fetch, :round, :multiply
 
   private
 
@@ -144,24 +142,24 @@ end
 __END__
 
 Warming up --------------------------------------
-               Monad    36.639k i/100ms
-     Dry::Transction    11.748k i/100ms
-        Kwork (fast)    16.886k i/100ms
-        Kwork (slow)     8.422k i/100ms
- Transactable (fast)    21.790k i/100ms
- Transactable (slow)     5.110k i/100ms
+               Monad    36.447k i/100ms
+     Dry::Transction    11.772k i/100ms
+        Kwork (fast)    16.661k i/100ms
+        Kwork (slow)     8.338k i/100ms
+ Transactable (fast)    17.500k i/100ms
+ Transactable (slow)     5.078k i/100ms
 Calculating -------------------------------------
-               Monad    365.327k (± 2.1%) i/s -      1.832M in   5.016761s
-     Dry::Transction    116.653k (± 1.6%) i/s -    587.400k in   5.036597s
-        Kwork (fast)    169.475k (± 1.9%) i/s -    861.186k in   5.083281s
-        Kwork (slow)     85.192k (± 2.2%) i/s -    429.522k in   5.043950s
- Transactable (fast)    218.667k (± 2.0%) i/s -      1.111M in   5.084101s
- Transactable (slow)     49.812k (± 2.1%) i/s -    250.390k in   5.028675s
+               Monad    364.600k (± 2.0%) i/s -      1.859M in   5.100100s
+     Dry::Transction    118.527k (± 2.0%) i/s -    600.372k in   5.067072s
+        Kwork (fast)    168.819k (± 2.4%) i/s -    849.711k in   5.036042s
+        Kwork (slow)     85.408k (± 2.3%) i/s -    433.576k in   5.078824s
+ Transactable (fast)    173.675k (± 2.4%) i/s -    875.000k in   5.040755s
+ Transactable (slow)     50.390k (± 1.8%) i/s -    253.900k in   5.040125s
 
 Comparison:
-               Monad:   365327.1 i/s
- Transactable (fast):   218667.3 i/s - 1.67x  slower
-        Kwork (fast):   169475.1 i/s - 2.16x  slower
-     Dry::Transction:   116653.1 i/s - 3.13x  slower
-        Kwork (slow):    85192.2 i/s - 4.29x  slower
- Transactable (slow):    49811.9 i/s - 7.33x  slower
+               Monad:   364600.3 i/s
+ Transactable (fast):   173674.8 i/s - 2.10x  slower
+        Kwork (fast):   168818.5 i/s - 2.16x  slower
+     Dry::Transction:   118527.4 i/s - 3.08x  slower
+        Kwork (slow):    85408.5 i/s - 4.27x  slower
+ Transactable (slow):    50390.0 i/s - 7.24x  slower
