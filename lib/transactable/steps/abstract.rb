@@ -12,6 +12,11 @@ module Transactable
       include Dry::Monads[:result]
       include Composable
 
+      def self.inherited descendant
+        super
+        descendant.prepend Instrumentable
+      end
+
       def initialize *positionals, **keywords, &block
         super(**keywords.slice(*DEPENDENCIES))
         @base_positionals = positionals
