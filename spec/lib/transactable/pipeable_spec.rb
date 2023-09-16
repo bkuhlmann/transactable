@@ -6,37 +6,7 @@ RSpec.describe Transactable::Pipeable do
   subject(:pipeable) { implementation.new }
 
   describe "#call" do
-    context "with single step (primitive)" do
-      let :implementation do
-        Class.new do
-          include Transactable::Pipeable.new
-
-          def call(input) = pipe input, as(:to_s)
-        end
-      end
-
-      it "answers result" do
-        result = pipeable.call "test"
-        expect(result.success).to eq("test")
-      end
-    end
-
-    context "with single step (monad)" do
-      let :implementation do
-        Class.new do
-          include Transactable::Pipeable.new
-
-          def call(input) = pipe Dry::Monads::Success(input), as(:to_s)
-        end
-      end
-
-      it "answers result" do
-        result = pipeable.call "test"
-        expect(result.success).to eq("test")
-      end
-    end
-
-    context "with a custom Proc step" do
+    context "with a custom function step" do
       let :implementation do
         Class.new do
           include Transactable::Pipeable.new({echo: -> result { result }})
@@ -66,33 +36,57 @@ RSpec.describe Transactable::Pipeable do
       end
     end
 
-    context "with step that is not a Proc or a Class" do
+    context "with multiple method steps" do
       let :implementation do
         Class.new do
           include Transactable::Pipeable.new
 
-          def call(input) = pipe input, Object.new
+          def initialize seed = 5
+            @seed = seed
+          end
+
+          def call(input) = pipe input, method(:add), method(:multiply)
+
+          private
+
+          attr_reader :seed
+
+          def add(result) = result.fmap { |value| seed + value }
+
+          def multiply(result) = result.fmap { |value| seed * value }
         end
       end
 
-      it "fails with invalid type" do
-        expectation = proc { pipeable.call "test" }
-        expect(&expectation).to raise_error(TypeError, /functionally composable.+monad/)
+      it "answers result" do
+        result = pipeable.call 10
+        expect(result.success).to eq(75)
       end
     end
 
-    context "with no steps" do
+    context "with multiple symbol steps" do
       let :implementation do
         Class.new do
           include Transactable::Pipeable.new
 
-          def call(input) = pipe input
+          def initialize seed = 5
+            @seed = seed
+          end
+
+          def call(input) = pipe input, :add, :multiply
+
+          private
+
+          attr_reader :seed
+
+          def add(result) = result.fmap { |value| seed + value }
+
+          def multiply(result) = result.fmap { |value| seed * value }
         end
       end
 
-      it "fails with argument error" do
-        expectation = proc { pipeable.call "test" }
-        expect(&expectation).to raise_error(ArgumentError, /must have at least one step/)
+      it "answers result" do
+        result = pipeable.call 10
+        expect(result.success).to eq(75)
       end
     end
   end

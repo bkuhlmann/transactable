@@ -7,6 +7,7 @@ detectors:
     enabled: false
   NestedIterators:
     exclude:
+      - "Transactable::Pipeable#define_pipe"
       - "Transactable::Pipeable#define_steps"
   TooManyStatements:
     exclude:

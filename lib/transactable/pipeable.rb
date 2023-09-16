@@ -1,13 +1,19 @@
 # frozen_string_literal: true
 
 require "dry/monads"
+require "refinements/arrays"
 
 module Transactable
   # Allows any object to pipe sequential steps together which can be composed into a single result.
   class Pipeable < Module
-    def initialize steps = Steps::Container
+    include Dry::Monads[:result]
+
+    using Refinements::Arrays
+
+    def initialize steps = Steps::Container, pipe: Pipe
       super()
       @steps = steps
+      @pipe = pipe
       @instance_module = Class.new(Module).new
     end
 
@@ -20,17 +26,14 @@ module Transactable
 
     private
 
-    attr_reader :steps, :instance_module
+    attr_reader :steps, :pipe, :instance_module
 
     def define_pipe
+      local_pipe = pipe
+
       instance_module.define_method :pipe do |input, *steps|
-        fail ArgumentError, "Transaction must have at least one step." if steps.empty?
-
-        result = input.is_a?(Dry::Monads::Result) ? input : Dry::Monads::Success(input)
-
-        steps.reduce(&:>>).call result
-      rescue NoMethodError
-        raise TypeError, "Step must be functionally composable and answer a monad."
+        steps.each { |step| steps.supplant step, method(step) if step.is_a? Symbol }
+        local_pipe.call(input, *steps)
       end
     end
 
