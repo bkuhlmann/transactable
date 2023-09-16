@@ -1,5 +1,14 @@
 = Versions
 
+== 0.6.0 (2023-09-16)
+
+* Added pipe - Brooke Kuhlmann
+* Added pipeable step symbols - Brooke Kuhlmann
+* Updated abstract step to prepend instrumentation when inherited - Brooke Kuhlmann
+* Refactored all steps to allow the superclass to handle instrumentation - Brooke Kuhlmann
+* Refactored benchmarks based on recent improvements - Brooke Kuhlmann
+* Refactored module included terminology to use descendant - Brooke Kuhlmann
+
 == 0.5.2 (2023-07-23)
 
 * Fixed RuboCop Packaging/BundlerSetupInTests issues - Brooke Kuhlmann

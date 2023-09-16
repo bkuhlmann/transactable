@@ -3,26 +3,31 @@
 :figure-caption!:
 
 :command_pattern_link: link:https://alchemists.io/articles/command_pattern[Command Pattern]
-:function_composition_link: link:https://alchemists.io/articles/ruby_function_composition[Function Composition]
 :debug_link: link:https://github.com/ruby/debug[Debug]
 :dry_container_link: link:https://dry-rb.org/gems/dry-container[Dry Container]
 :dry_events_link: link:https://dry-rb.org/gems/dry-events[Dry Events]
 :dry_monads_link: link:https://dry-rb.org/gems/dry-monads[Dry Monads]
 :dry_schema_link: link:https://dry-rb.org/gems/dry-schema[Dry Schema]
 :dry_validation_link: link:https://dry-rb.org/gems/dry-validation[Dry Validation]
+:function_composition_link: link:https://alchemists.io/articles/ruby_function_composition[Function Composition]
+:infusible_link: link:https://alchemists.io/projects/infusible[Infusible]
+:railway_pattern_link: link:https://fsharpforfunandprofit.com/posts/recipe-part2[Railway Pattern]
 
 = Transactable
 
-A DSL for transactional workflows built atop function composition. This allows you to write in a syntax that builds upon -- and abstracts away -- native function composition support while allowing you to cleanly read the code from left-to-right or top-to-bottom sequentially.
+A DSL for transactional workflows built atop native {function_composition_link} which leverages the {railway_pattern_link}. This allows you to write a sequence of _steps_ that cleanly read from left-to-right or top-to-bottom which results in a success or a failure without having to rely on exceptions which are expensive.
 
 toc::[]
 
 == Features
 
-* Built on top of native function composition capabilities.
-* Customizable with additional or entirely different steps.
-* Chainable where you can couple together multiple transactions to build more complex architectures.
-* Instrumentable so you can track metrics, log usage, and much more.
+* Built atop of native {function_composition_link}.
+* Adheres to the {railway_pattern_link}.
+* Provides built-in and customizable domain-specific steps.
+* Provides chainable _pipes_ which can be used to build more complex workflows.
+* Supports instrumentation for tracking metrics, logging usage, and much more.
+* Compatible with {dry_monads_link}.
+* Compatible with {infusible_link}.
 
 == Requirements
 
@@ -80,7 +85,7 @@ class Demo
   def call data
     pipe data,
          check(/Book.+Price/, :match?),
-         method(:parse),
+         :parse,
          map { |item| "#{item[:book]}: #{item[:price]}" }
   end
 
@@ -98,21 +103,17 @@ class Demo
 end
 ----
 
-The above allows the `Demo#call` method to be a _transactional_ series of composed steps which may pass or fail where each step is piped together via {dry_monads_link}. This is the essence of the _Railway Pattern_.
+The above allows `Demo#call` to be a _transactional_ sequence steps which may pass or fail due to all step being {dry_monads_link}. This is the essence of the {railway_pattern_link}.
 
 To execute the above example, you'd only need to pass CSV content to it:
 
 [source,ruby]
 ----
-csv = <<~CSV
+Demo.new.call <<~CSV
   Book,Author,Price,At
   Mystics,urGoh,10.50,2022-01-01
   Skeksis,skekSil,20.75,2022-02-13
 CSV
-
-demo = Demo.new
-
-demo.call csv
 ----
 
 The computed result is a success with each book listing a price:
@@ -123,22 +124,22 @@ Success ["Mystics: 10.50", "Skeksis: 20.75"]
 
 === Pipe
 
-Once you've included the `Transactable` module within your class, the `#pipe` method is available to you and is how you build a series of steps for processing. The method signature is:
+Once you've included the `Transactable` module within your class, the `#pipe` method is available to you and is how you build a sequence of steps for processing. The method signature is:
 
 [source,ruby]
 ----
 pipe(input, *steps)
 ----
 
-The first argument is your input which can be a Ruby primitive or a monad. Regardless, the input will be automatically wrapped as a `Success` -- but only if not a `Result` to begin with -- before passing to the first step. From there, all steps are _required_ to answer a monad in order to adhere to the _Railway Pattern_.
+The first argument is your input which can be a Ruby primitive or a monad. Regardless, the input will be automatically wrapped as a `Success` -- but only if not a `Result` to begin with -- before passing to the first step. From there, all steps are _required_ to answer a monad in order to adhere to the {railway_pattern_link}.
 
-Behind the scenes, the `#pipe` method is syntactic sugar on top of function composition which means if this code were to be rewritten:
+Behind the scenes, the `#pipe` method is syntactic sugar on top of {function_composition_link} which means if this code were to be rewritten:
 
 [source,ruby]
 ----
 pipe csv,
      check(/Book.+Price/, :match?),
-     method(:parse),
+     :parse,
      map { |item| "#{item[:book]}: #{item[:price]}" }
 ----
 
@@ -153,7 +154,7 @@ Then the above would look like this using native Ruby:
 ).call Success(csv)
 ----
 
-The only problem with native function composition is that it reads backwards by passing in your input at the end of all sequential steps. With the `#pipe` method, you have the benefit of allowing your eye to read the code from top to bottom in addition to not having to type multiple _forward composition_ operators.
+The problem with native function composition is that it reads backwards by passing your input at the end of all sequential steps. With the `#pipe` method, you have the benefit of allowing your eye to read the code from top to bottom in addition to not having to type multiple _forward composition_ operators.
 
 === Steps
 
@@ -379,7 +380,7 @@ class Demo
   def call input
     pipe :a,
          insert(:b),
-         method(:join),
+         :join,
          as(:to_sym)
   end
 
@@ -390,6 +391,8 @@ end
 
 Demo.new.call :a  # Yields: Success :a_b
 ----
+
+All methods can be referenced by symbol as shown via `:join` above. Using a symbol is syntactic sugar for link:https://rubyapi.org/o/object#method-i-method[Object#method] so the use of the `:join` symbol is the same as using `method(:join)`. Both work but the former requires less typing than the latter.
 
 ℹ️ You won't be able to instrument these method calls (unless you inject instrumentation) but are great when needing additional behavior between the default steps.
 
@@ -406,8 +409,6 @@ Here's what this would look like:
 ----
 module MySteps
   class Join < Transactable::Steps::Abstract
-    prepend Transactable::Instrumentable
-
     def initialize(delimiter = "_", **)
       super(**)
       @delimiter = delimiter
@@ -425,18 +426,10 @@ Transactable::Steps::Container.register(:join) { MySteps::Join }
 
 include Transactable
 
-pipe :a,
-     insert(:b),
-     join,
-     as(:to_sym)
-
+pipe :a, insert(:b), join, as(:to_sym)
 # Yields: Success :a_b
 
-pipe :a,
-     insert(:b),
-     join(""),
-     as(:to_sym)
-
+pipe :a, insert(:b), join(""), as(:to_sym)
 # Yields: Success :ab
 ----
 
@@ -505,7 +498,7 @@ step: {:name=>"Transactable::Steps::Map", :arguments=>[[], {}, #<Proc:0x00000001
 step.success: {:name=>"Transactable::Steps::Map", :value=>["Mystics: 10.50", "Skeksis: 20.75"], :arguments=>[[], {}, #<Proc:0x0000000106405900 (irb):15>]}
 ....
 
-Finally, the `Transactable::Instrumentable` module is available should you need to _prepend_ instrumentation to any of your classes.
+Finally, the `Transactable::Instrumentable` module is available should you need to _prepend_ instrumentation to any of your class' `#call` methods.
 
 There is a lot you can do with instrumentation so check out the {dry_events_link} documentation for further details.
 
@@ -532,12 +525,12 @@ bin/console
 The architecture of this gem is built on top of the following concepts and gems:
 
 * {function_composition_link}: Made possible through the use of the `\#>>` and `#<<` methods on the link:https://rubyapi.org/3.1/o/method[Method] and link:https://rubyapi.org/3.1/o/proc[Proc] objects.
-* {dry_container_link} - Allows related dependencies to be grouped together for injection.
-* {dry_events_link} - Allows all steps to be observable so you can subscribe to any/all events for metric, logging, and other capabilities.
-* {dry_monads_link} - Critical to ensuring the entire pipeline of steps adhere to the _Railway Pattern_ and leans heavily on the `Result` object.
-* link:https://dry-rb.org/gems/dry-transaction[Dry Transaction] - Specifically the concept of a _step_ where each step can have an _operation_ and/or _input_ to be processed. Instrumentation is used as well so you can have rich metrics, logging, or any other kind of observer wired up as desired.
-* link:https://alchemists.io/projects/infusible[Infusible] - Coupled with {dry_container_link}, allows dependencies to be automatically injected.
-* link:https://alchemists.io/projects/marameters[Marameters] - Through the use of the `.categorize` method, dynamic message passing is possible by inspecting the operation method's parameters.
+* {dry_container_link}: Allows related dependencies to be grouped together for injection as desired.
+* {dry_events_link}: Allows all steps to be observable so you can subscribe to any/all events for metric, logging, and other capabilities.
+* {dry_monads_link}: Critical to ensuring the entire pipeline of steps adhere to the {railway_pattern_link} and leans heavily on the `Result` object.
+* link:https://dry-rb.org/gems/dry-transaction[Dry Transaction]: Specifically the concept of a _step_ where each step can have an _operation_ and/or _input_ to be processed. Instrumentation is used as well so you can have rich metrics, logging, or any other kind of observer wired up as desired.
+* link:https://alchemists.io/projects/infusible[Infusible]: Coupled with {dry_container_link}, allows dependencies to be automatically injected.
+* link:https://alchemists.io/projects/marameters[Marameters]: Through the use of the `.categorize` method, dynamic message passing is possible by inspecting the operation method's parameters.
 
 === Style Guide
 
@@ -546,7 +539,6 @@ The architecture of this gem is built on top of the following concepts and gems:
 * *Steps*
 ** Inherit from the `Abstract` class in order to gain monad, composition, and dependency behavior. Any dependencies injected are automatically filtered out so all subclasses have direct and clean access to the base positional, keyword, and block arguments. These variables are prefixed with `base_*` in order to not conflict with subclasses which might only want to use non-prefixed variables for convenience.
 ** All filtered arguments -- in other words, the unused arguments -- need to be passed up to the superclass from the subclass (i.e. `super(*positionals, **keywords, &block)`). Doing so allows the superclass (i.e. `Abstract`) to provide access to `base_positionals`, `base_keywords`, and `base_block` for use if desired by the subclass.
-** Prepend `Instrumentable` to gain instrumentation behavior and remain consistent with existing steps. This includes adding the `with instrumentation` RSpec shared context when testing too.
 ** The `#call` method must define a single positional `result` parameter since a monad will be passed as an argument. Example: `def call(result) = # Implementation`.
 ** Each block within the `#call` method should use the `input` parameter to be consistent. More specific parameters like `argument` or `operation` should be used to improve readability when possible. Example: `def call(result) = result.bind { |input| # Implementation }`.
 ** Use implicit blocks sparingly. Most of the default steps shy away from using blocks because it can make the code more complex. Use private methods, custom steps, and/or separate transactions if the code becomes too complex because you might have a smaller object which needs extraction.
@@ -560,7 +552,7 @@ If you need to debug (i.e. {debug_link}) your pipe, use a lambda. Example:
 pipe data,
      check(/Book.+Price/, :match?),
      -> result { binding.break },    # Breakpoint
-     method(:parse),
+     :parse
 ----
 
 The above breakpoint will allow you inspect the result of the `#check` step and/or build a modified result for passing to the subsequent `#method` step.
@@ -573,7 +565,7 @@ The following might be of aid to as you implement your own transactions.
 
 If you get a `TypeError: Step must be functionally composable and answer a monad`, it means:
 
-. The step must be a `Proc` or some object which responds to `\#>>`, `#<<`, and `#call`.
+. The step must be a `Proc`, `Method`, or some object which responds to `\#>>`, `#<<`, and `#call`.
 . The step doesn't answer a result monad (i.e. `Success some_value` or `Failure some_value`).
 
 ==== No Method Errors
