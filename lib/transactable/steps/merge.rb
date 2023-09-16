@@ -4,8 +4,6 @@ module Transactable
   module Steps
     # Merges initialized attributes with step argument for use by a subsequent step.
     class Merge < Abstract
-      prepend Instrumentable
-
       def initialize as: :step, **keywords
         super(**keywords)
         @as = as

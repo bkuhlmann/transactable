@@ -4,8 +4,6 @@ module Transactable
   module Steps
     # Checks if operation is true and then answers success (passthrough) or failure (with argument).
     class Check < Abstract
-      prepend Instrumentable
-
       def initialize(operation, message, **)
         super(**)
         @operation = operation

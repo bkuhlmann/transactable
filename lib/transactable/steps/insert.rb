@@ -4,8 +4,6 @@ module Transactable
   module Steps
     # Inserts elements before, after, or around input.
     class Insert < Abstract
-      prepend Instrumentable
-
       LAST = -1
 
       def initialize(*positionals, at: LAST, **)

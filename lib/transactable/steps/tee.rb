@@ -4,8 +4,6 @@ module Transactable
   module Steps
     # Messages operation, without any response checks, while passing input through as output.
     class Tee < Abstract
-      prepend Instrumentable
-
       def initialize(operation, *, **)
         super(*, **)
         @operation = operation

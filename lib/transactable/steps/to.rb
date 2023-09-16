@@ -4,8 +4,6 @@ module Transactable
   module Steps
     # Delegates to a non-callable operation which automatically wraps the result if necessary.
     class To < Abstract
-      prepend Instrumentable
-
       def initialize(operation, message, **)
         super(**)
         @operation = operation

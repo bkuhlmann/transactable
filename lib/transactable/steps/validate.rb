@@ -4,8 +4,6 @@ module Transactable
   module Steps
     # Validates a result via a callable operation.
     class Validate < Abstract
-      prepend Instrumentable
-
       def initialize(operation, as: :to_h, **)
         super(**)
         @operation = operation

@@ -4,8 +4,6 @@ module Transactable
   module Steps
     # Messages a risky operation which may pass or fail.
     class Try < Abstract
-      prepend Instrumentable
-
       def initialize *positionals, catch:, **keywords
         super(*positionals, **keywords)
         @catch = catch

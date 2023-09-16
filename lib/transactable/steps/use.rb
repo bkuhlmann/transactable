@@ -4,8 +4,6 @@ module Transactable
   module Steps
     # Use another transaction -- or any command -- which answers a result.
     class Use < Abstract
-      prepend Instrumentable
-
       def initialize(operation, **)
         super(**)
         @operation = operation
