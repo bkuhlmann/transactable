@@ -21,8 +21,8 @@ Profiler = lambda do |callback, _name, _positionals, _keywords, _block|
   result
 end
 
-# For monad comparison.
-Monader = Class.new do
+# Monad
+class Monader
   include Dry::Monads[:result]
 
   def call body
@@ -33,8 +33,8 @@ Monader = Class.new do
   end
 end
 
-# For Dry Transaction comparison.
-Transactor = Class.new do
+# Dry Transaction.
+class Transactor
   include Dry::Monads[:result]
   include Dry::Transaction
 
@@ -54,11 +54,18 @@ Transactor = Class.new do
   def multiply(value) = Success value * 10
 end
 
-# For Kwork comparison (fast).
-FastWorker = Class.new do
+# Kwork (fast)
+class FastWorker
   include Kwork[operations: %i[parse fetch round multiply]]
 
-  def call(body) = transaction { |step| step.multiply step.round(step.fetch(step.parse(body))) }
+  def call body
+    transaction do |action|
+      attributes = action.parse body
+      value = action.fetch attributes
+      value = action.round value
+      action.multiply value
+    end
+  end
 
   private
 
@@ -71,11 +78,18 @@ FastWorker = Class.new do
   def multiply(value) = success value * 10
 end
 
-# For Kwork comparison (slow).
-SlowWorker = Class.new do
+# Kwork (slow)
+class SlowWorker
   include Kwork[operations: %i[parse fetch round multiply], profiler: Profiler]
 
-  def call(body) = transaction { |step| step.multiply step.round(step.fetch(step.parse(body))) }
+  def call body
+    transaction do |action|
+      attributes = action.parse body
+      value = action.fetch attributes
+      value = action.round value
+      action.multiply value
+    end
+  end
 
   private
 
@@ -88,8 +102,8 @@ SlowWorker = Class.new do
   def multiply(value) = success value * 10
 end
 
-# For Transactable comparison (fast).
-FastComposer = Class.new do
+# Transactable (fast).
+class FastTransactor
   include Transactable
 
   def call(body) = pipe body, :parse, :fetch, :round, :multiply
@@ -105,8 +119,8 @@ FastComposer = Class.new do
   def multiply(value) = value.fmap { |number| number * 10 }
 end
 
-# For Transactable comparison (slow).
-SlowComposer = Class.new do
+# Transactable (slow).
+class SlowTransactor
   include Transactable
 
   def call body
@@ -123,8 +137,8 @@ monader = Monader.new
 transactor = Transactor.new
 fast_worker = FastWorker.new
 slow_worker = SlowWorker.new
-fast_composer = FastComposer.new
-slow_composer = SlowComposer.new
+fast_transactor = FastTransactor.new
+slow_transactor = SlowTransactor.new
 
 Benchmark.ips do |benchmark|
   benchmark.config time: 5, warmup: 2
@@ -133,8 +147,8 @@ Benchmark.ips do |benchmark|
   benchmark.report("Dry::Transction") { transactor.call body }
   benchmark.report("Kwork (fast)") { fast_worker.call body }
   benchmark.report("Kwork (slow)") { slow_worker.call body }
-  benchmark.report("Transactable (fast)") { fast_composer.call body }
-  benchmark.report("Transactable (slow)") { slow_composer.call body }
+  benchmark.report("Transactable (fast)") { fast_transactor.call body }
+  benchmark.report("Transactable (slow)") { slow_transactor.call body }
 
   benchmark.compare!
 end
@@ -142,24 +156,24 @@ end
 __END__
 
 Warming up --------------------------------------
-               Monad    36.447k i/100ms
-     Dry::Transction    11.772k i/100ms
-        Kwork (fast)    16.661k i/100ms
-        Kwork (slow)     8.338k i/100ms
- Transactable (fast)    17.500k i/100ms
- Transactable (slow)     5.078k i/100ms
+               Monad    36.061k i/100ms
+     Dry::Transction    11.987k i/100ms
+        Kwork (fast)    16.818k i/100ms
+        Kwork (slow)     8.451k i/100ms
+ Transactable (fast)    17.438k i/100ms
+ Transactable (slow)     5.150k i/100ms
 Calculating -------------------------------------
-               Monad    364.600k (± 2.0%) i/s -      1.859M in   5.100100s
-     Dry::Transction    118.527k (± 2.0%) i/s -    600.372k in   5.067072s
-        Kwork (fast)    168.819k (± 2.4%) i/s -    849.711k in   5.036042s
-        Kwork (slow)     85.408k (± 2.3%) i/s -    433.576k in   5.078824s
- Transactable (fast)    173.675k (± 2.4%) i/s -    875.000k in   5.040755s
- Transactable (slow)     50.390k (± 1.8%) i/s -    253.900k in   5.040125s
+               Monad    367.741k (± 2.2%) i/s -      1.839M in   5.003410s
+     Dry::Transction    119.433k (± 2.0%) i/s -    599.350k in   5.020084s
+        Kwork (fast)    168.223k (± 2.2%) i/s -    840.900k in   5.001060s
+        Kwork (slow)     84.517k (± 2.3%) i/s -    422.550k in   5.001932s
+ Transactable (fast)    175.129k (± 2.0%) i/s -    889.338k in   5.080141s
+ Transactable (slow)     50.571k (± 1.9%) i/s -    257.500k in   5.093439s
 
 Comparison:
-               Monad:   364600.3 i/s
- Transactable (fast):   173674.8 i/s - 2.10x  slower
-        Kwork (fast):   168818.5 i/s - 2.16x  slower
-     Dry::Transction:   118527.4 i/s - 3.08x  slower
-        Kwork (slow):    85408.5 i/s - 4.27x  slower
- Transactable (slow):    50390.0 i/s - 7.24x  slower
+               Monad:   367740.9 i/s
+ Transactable (fast):   175129.0 i/s - 2.10x  slower
+        Kwork (fast):   168223.2 i/s - 2.19x  slower
+     Dry::Transction:   119433.3 i/s - 3.08x  slower
+        Kwork (slow):    84516.7 i/s - 4.35x  slower
+ Transactable (slow):    50571.3 i/s - 7.27x  slower
