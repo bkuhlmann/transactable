@@ -12,5 +12,7 @@ end
 module Transactable
   def self.included(descendant) = descendant.include Pipeable.new
 
+  def self.loader(registry = Zeitwerk::Registry) = registry.loader_for __FILE__
+
   def self.with(...) = Pipeable.new(...)
 end
