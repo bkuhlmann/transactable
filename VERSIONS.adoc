@@ -1,5 +1,12 @@
 = Versions
 
+== 0.7.0 (2023-09-30)
+
+* Fixed Zeitwerk loader - Brooke Kuhlmann
+* Added gem loader - Brooke Kuhlmann
+* Updated GitHub issue template with simplified sections - Brooke Kuhlmann
+* Refactored benchmark to not use anonymous classes - Brooke Kuhlmann
+
 == 0.6.0 (2023-09-16)
 
 * Added pipe - Brooke Kuhlmann
