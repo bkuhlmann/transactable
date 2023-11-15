@@ -4,6 +4,17 @@ require "dry/container"
 require "spec_helper"
 
 RSpec.describe Transactable do
+  describe ".loader" do
+    it "eager loads" do
+      expectation = proc { described_class.loader.eager_load force: true }
+      expect(&expectation).not_to raise_error
+    end
+
+    it "answers unique tag" do
+      expect(described_class.loader.tag).to eq("transactable")
+    end
+  end
+
   describe ".included" do
     it "includes behavior" do
       implementation = Class.new.include described_class
