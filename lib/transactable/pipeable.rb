@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 require "dry/monads"
-require "refinements/arrays"
+require "refinements/array"
 
 module Transactable
   # Allows any object to pipe sequential steps together which can be composed into a single result.
   class Pipeable < Module
     include Dry::Monads[:result]
 
-    using Refinements::Arrays
+    using Refinements::Array
 
     def initialize steps = Steps::Container, pipe: Pipe
       super()
