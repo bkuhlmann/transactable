@@ -1,6 +1,2 @@
 inherit_gem:
   caliber: config/all.yml
-
-Layout/ClassStructure:
-  Exclude:
-    - "lib/transactable/steps/abstract.rb"

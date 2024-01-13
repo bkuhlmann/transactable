@@ -6,9 +6,7 @@ module Transactable
   module Steps
     # Provides the blueprint for a step to used in function composition.
     class Abstract
-      DEPENDENCIES = %i[instrument marameters].freeze
-
-      include Import[*DEPENDENCIES]
+      include Import[:instrument, :marameters]
       include Dry::Monads[:result]
       include Composable
 
@@ -18,9 +16,9 @@ module Transactable
       end
 
       def initialize *positionals, **keywords, &block
-        super(**keywords.slice(*DEPENDENCIES))
+        super(**keywords.slice(:instrument, :marameters))
         @base_positionals = positionals
-        @base_keywords = keywords.except(*DEPENDENCIES)
+        @base_keywords = keywords.except(*infused_keys)
         @base_block = block
       end
 
