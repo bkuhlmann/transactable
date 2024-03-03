@@ -1,5 +1,16 @@
 = Versions
 
+== 0.11.0 (2024-03-03)
+
+* 🟢 Added repl_type_completor gem - Brooke Kuhlmann
+* 🔼 Updated RuboCop to use XDG local configuration - Brooke Kuhlmann
+* 🔼 Updated to Caliber 0.50.0 - Brooke Kuhlmann
+* 🔼 Updated to Caliber 0.51.0 - Brooke Kuhlmann
+* 🔼 Updated to Git Lint 7.1.0 - Brooke Kuhlmann
+* 🔼 Updated to RSpec 3.13.0 - Brooke Kuhlmann
+* 🔼 Updated to Reek 6.3.0 - Brooke Kuhlmann
+* 🔼 Updated to Refinements 12.1.0 - Brooke Kuhlmann
+
 == 0.10.0 (2024-01-13)
 
 * 🔼 Updated to Infusible 3.1.0 - Brooke Kuhlmann
