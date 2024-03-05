@@ -1,5 +1,9 @@
 = Versions
 
+== 0.11.1 (2024-03-05)
+
+* 🟢 Added gemspec post install deprecation message - Brooke Kuhlmann
+
 == 0.11.0 (2024-03-03)
 
 * 🟢 Added repl_type_completor gem - Brooke Kuhlmann

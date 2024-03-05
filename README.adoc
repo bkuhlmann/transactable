@@ -15,6 +15,8 @@
 
 = Transactable
 
+⚠️ *This gem is deprecated and will be fully destroyed on 2025-03-05. Please use the link:https://alchemists.io/projects/pipeable[Pipeable] gem instead.* ⚠️
+
 A DSL for transactional workflows built atop native {function_composition_link} which leverages the {railway_pattern_link}. This allows you to write a sequence of _steps_ that cleanly read from left-to-right or top-to-bottom which results in a success or a failure without having to rely on exceptions which are expensive.
 
 toc::[]
