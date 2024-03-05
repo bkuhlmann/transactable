@@ -9,6 +9,11 @@ Gem::Specification.new do |spec|
   spec.summary = "A domain specific language for functionally composable transactional workflows."
   spec.license = "Hippocratic-2.1"
 
+  spec.post_install_message = <<~MESSAGE
+    DEPRECATION: The Transactble gem is deprecated and will be fully destroyed on 2025-03-05.
+    Please use the Pipeable gem instead: https://alchemists.io/projects/pipeable.
+  MESSAGE
+
   spec.metadata = {
     "bug_tracker_uri" => "https://github.com/bkuhlmann/transactable/issues",
     "changelog_uri" => "https://alchemists.io/projects/transactable/versions",
