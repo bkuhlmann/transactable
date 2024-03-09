@@ -1,5 +1,12 @@
 = Versions
 
+== 0.12.0 (2024-03-09)
+
+* 🟢 Added gemspec post install deprecation message - Brooke Kuhlmann
+* 🟢 Added version release notes - Brooke Kuhlmann
+* 🔼 Updated to Amazing Print 1.6.0 - Brooke Kuhlmann
+* 🔼 Updated to Infusible 3.4.0 - Brooke Kuhlmann
+
 == 0.11.1 (2024-03-05)
 
 * 🟢 Added gemspec post install deprecation message - Brooke Kuhlmann
