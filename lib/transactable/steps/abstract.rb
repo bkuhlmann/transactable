@@ -18,7 +18,7 @@ module Transactable
       def initialize *positionals, **keywords, &block
         super(**keywords.slice(:instrument, :marameters))
         @base_positionals = positionals
-        @base_keywords = keywords.except(*infused_keys)
+        @base_keywords = keywords.except(*infused_names)
         @base_block = block
       end
 
